@@ -15,7 +15,7 @@ app.use(express.json());
 
 const environment = process.env.NODE_ENV;
 const testOrProduction = (environment === 'test' || environment === 'production');
-
+console.log('environment', environment)
 const sequelize = new Sequelize(process.env.DATABASE_URL, testOrProduction ? { logging: false } : {});
 
 // Process FORM input and put the data on req.body
@@ -94,3 +94,4 @@ sequelize.sync()
   }).catch(e => {
     console.error('Could not start server', e.message);
   });
+
