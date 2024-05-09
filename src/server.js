@@ -3,44 +3,31 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const base64 = require('base-64');
-const { Sequelize, DataTypes } = require('sequelize');
+const { Users } = require('./auth/models/index.js')
 
 const app = express();
+// Process JSON input and put the data on req.body
+app.use(express.json());
+// Process FORM input and put the data on req.body
+app.use(express.urlencoded({ extended: true }));
 
 // Import the basicAuth middleware function from basic.js
 const basicAuth = require('./auth/middleware/basic');
 
+// Signup Route -- create a new user
+app.post('/signup', async (req, res) => {
+
+  try {
+    req.body.password = await bcrypt.hash(req.body.password, 10);
+    const record = await Users.create(req.body);
+    res.status(200).json(record);
+  } catch (e) { res.status(403).send('Error Creating User'); }
+});
 // Signin Route -- login with username and password
 app.post('/signin', basicAuth, async (req, res) => {
   // Logic for sign-in route
+  res.status(200).json(req.user);
 });
 
-// Process JSON input and put the data on req.body
-app.use(express.json());
 
-const environment = process.env.NODE_ENV;
-const testOrProduction = (environment === 'test' || environment === 'production');
-
-const sequelize = new Sequelize(process.env.DATABASE_URL, testOrProduction ? { logging: false } : {});
-
-// Process FORM input and put the data on req.body
-app.use(express.urlencoded({ extended: true }));
-
-// Create a Sequelize model
-const Users = sequelize.define('User', {
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  }
-});
-
-// Signup Route -- create a new user
-app.post('/signup', async (req, res) => {
-  // Logic for sign-up route
-});
-
-module.exports = { app, sequelize };
+module.exports = { app };
